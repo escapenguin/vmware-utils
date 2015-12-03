@@ -1,11 +1,15 @@
-FROM ubuntu:14.04
+FROM ubuntu:latest
 MAINTAINER renoufa@vmware.com
+ENV DEBIAN_FRONTEND noninteractive
 
 # Set the working directory to /root
 WORKDIR /root
 
 # Update apt-get
 RUN apt-get update
+
+# Default to UTF-8 file.encoding
+ENV LANG C.UTF-8
 
 ## -------- vSphere -------- ##
 
@@ -25,6 +29,7 @@ RUN apt-get install -yq build-essential \
       libclass-methodmaker-perl \
       libdata-dump-perl \
       libsoap-lite-perl \
+      libyaml-dev \
       git \
       expect \
       python \
@@ -32,6 +37,8 @@ RUN apt-get install -yq build-essential \
       python-pip \
       python-virtualenv \
       ruby-full \
+      ruby2.0 \
+      ruby2.0-dev \
       make \
       unzip \
       gem \
@@ -53,7 +60,7 @@ RUN mkdir /root/vghetto && \
   git clone https://github.com/lamw/vghetto-scripts.git /root/vghetto
 
 # Install rbVmomi &  RVC
-RUN gem install rbvmomi rvc ffi
+RUN gem install --no-rdoc --no-ri rbvmomi rvc ffi
 ENV RVC_READLINE /usr/lib/ruby/1.9.1/x86_64-linux/readline.so
 
 # Install pyVmomi (vSphere SDK for Python)
@@ -81,23 +88,24 @@ RUN apt-get install -yq libssl-dev \
 RUN pip install vca-cli
 
 # Install RaaS CLI
-RUN gem install RaaS
+RUN gem install --no-rdoc --no-ri RaaS
 
 # Install vCloud SDK for Python
 RUN easy_install -U pip
+RUN pip install PyYAML
 RUN pip install pyvcloud
 
 ## -------- vCloud Director -------- ##
 
 # Install vcloud-tools
-RUN gem install --no-rdoc --no-ri vcloud-tools
+RUN gem2.0 install --no-rdoc --no-ri vcloud-tools
 
 ## vRealize Management Suite ##
 
-# Install Cloud Client http://developercenter.vmware.com/web/dp/tool/cloudclient/3.1.0
-ADD cloudclient-3.2.0-2594179-dist.zip /tmp/
-RUN unzip /tmp/cloudclient-3.2.0-2594179-dist.zip -d /root
-RUN rm -rf /tmp/cloudclient-3.2.0-2594179-dist.zip
+# Install Cloud Client http://developercenter.vmware.com/web/dp/tool/cloudclient/3.3.1
+ADD cloudclient-3.3.1-2966416-dist.zip /tmp/
+RUN unzip /tmp/cloudclient-3.3.1-2966416-dist.zip -d /root
+RUN rm -rf /tmp/cloudclient-3.3.1-2966416-dist.zip
 
 # Run Bash when the image starts
 CMD ["/bin/bash"]
